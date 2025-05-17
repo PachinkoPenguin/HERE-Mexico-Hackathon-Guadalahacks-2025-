@@ -1,5 +1,34 @@
+# Environment variables
 .env
-POIs
-STREETS_NAV
-STREETS_NAMING_ADDRESSING
-HERE_L11_Tiles.geojson
+dot.env
+*.env
+.venv/
+
+# Data directories and files
+data/POIs/
+data/STREETS_NAV/
+data/STREETS_NAMING_ADDRESSING/
+data/HERE_L11_Tiles.geojson
+data/processed/
+
+# Generated files
+*.csv
+*.json
+*.geojson
+*.png
+*.xlsx
+satellite_tile.*
+poi_map_tile_*.*
+
+# Exceptions - allow these specific files
+!data/docs/POI_Facility_Types.csv
+!data/docs/satellite_imagery_tile_request.py
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# OS specific
+.DS_Store
+Thumbs.db
