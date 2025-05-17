@@ -16,16 +16,10 @@ def lat_lon_to_tile(lat, lon, zoom):
     :return: Tuple (x, y) representing the tile indices
     """
     # Convert latitude and longitude to radians
-    lat_rad = math.radians(lat)
-    lon_rad = math.radians(lon)
-    
-    # Calculate n (number of tiles at the given zoom level)
+    lat = max(min(lat, 85.05112878), -85.05112878)
     n = 2.0 ** zoom
-    
-    # Calculate x and y tile indices
-    x = int((lon_rad - (-math.pi)) / (2 * math.pi) * n)
-    y = int((1 - math.log(math.tan(lat_rad) + 1 / math.cos(lat_rad)) / math.pi) / 2 * n)
-    
+    x = int((lon + 180.0) / 360.0 * n)
+    y = int((1.0 - math.log(math.tan(math.radians(lat)) + 1 / math.cos(math.radians(lat))) / math.pi) / 2.0 * n)
     return (x, y)
 
 def tile_coords_to_lat_lon(x, y, zoom):
@@ -59,6 +53,7 @@ def get_satellite_tile(lat,lon,zoom,tile_format,api_key):
 
     # Make the request
     response = requests.get(url)
+    print(response.url)
 
     # Check if the request was successful
     if response.status_code == 200:
@@ -78,9 +73,9 @@ def get_satellite_tile(lat,lon,zoom,tile_format,api_key):
 ##########################################################
 # Define the parameters for the tile request
 api_key = API_KEY
-latitude = 51.94347 
-longitude = 8.51692 
-zoom_level = 20  # Zoom level
+latitude = 19.2704
+longitude = -99.6423
+zoom_level = 17  # Zoom level
 tile_size = 512  # Tile size in pixels
 tile_format = 'png'  # Tile format
 
