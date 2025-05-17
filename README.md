@@ -1,0 +1,281 @@
+# Guadalahacks 2025 - POI295 Validator
+
+A project for Guadalahacks 2025 that automatically identifies and corrects POI295 violations: "POI on Inside of Multi-Dig Road."
+
+## Quick Start Guide
+
+### Prerequisites
+- Python 3.8+
+- Required libraries (see Installation section)
+- HERE API key (optional, for satellite imagery)
+
+### Installation
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/Guadalahacks_2025.git
+cd Guadalahacks_2025
+
+# Create and activate virtual environment
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### Complete Workflow (Recommended Sequence)
+```bash
+# 1. Extract and process all POI data
+python main.py extract --format json
+
+# 2. Generate a map for a specific tile
+python main.py map 4815081
+
+# 3. Validate and correct POI295 violations
+python main.py validate --correct --report --visualize
+
+# 4. View the generated maps and reports in the data/processed/ folder
+```
+
+### For Satellite Imagery
+Create a `.env` file in the project root with your HERE API key:
+```
+API_KEY=your_here_api_key_here
+```
+
+Then generate maps with satellite imagery:
+```bash
+python main.py map 4815081 --satellite
+```
+
+## Project Overview
+
+This project addresses the problem of incorrect Points of Interest (POIs) placement in relation to multiply digitized roads. The POI295 validation rule detects suspicious POIs located on the inside of multiply digitized roads. This tool automates the process of identifying and correcting these issues.
+
+### Components
+
+1. **POI Data Extractor** (`poi_data_extractor.py`): Extracts POI data from source files
+2. **POI Mapper** (`poi_mapper.py`): Visualizes POIs on maps with satellite imagery
+3. **POI295 Validator** (`poi295_validator.py`): Analyzes and corrects POI295 violations
+4. **Main Application** (`main.py`): Command-line interface for all tools
+
+## Validation Correction Scenarios
+
+The tool addresses four possible scenarios for POI295 violations:
+
+1. **No POI in reality**: The POI feature is outdated or has been moved. The tool will mark the feature for deletion.
+2. **Incorrect POI location**: The POI exists but is associated with the wrong side of the road. The tool will update the POI record with a new associated link.
+3. **Incorrect Multiply Digitised attribution**: The POI is in the correct place, but the road segment was incorrectly attributed as multiply digitized. The tool will update the link's MULTIDIGIT attribute to 'N'.
+4. **Legitimate Exception**: The POI exists and its location within a multi-dig set of road links is correct. The tool will mark the violation as a legitimate exception.
+
+## Installation
+
+This project requires Python 3.8+ and several dependencies:
+
+```bash
+# Create a virtual environment (optional but recommended)
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Install dependencies
+pip install pandas numpy geopandas matplotlib shapely requests pillow
+```
+
+## Usage
+
+The project provides a command-line interface with three main commands. For optimal results, we recommend following the sequence outlined below.
+
+### Step 1: Extract POI Data
+
+Begin by extracting and processing the POI data from source files. This will create the necessary processed data files that other components rely on.
+
+```bash
+# Extract data for all tiles
+python main.py extract --format json
+
+# Extract data for a specific tile
+python main.py extract --tile 4815081 --format csv
+```
+
+### Step 2: Generate POI Maps (Optional)
+
+Next, you can visualize the POIs on maps to get a better understanding of the data before validation.
+
+```bash
+# Generate a map for a specific tile
+python main.py map 4815081
+
+# Generate a map with satellite imagery
+python main.py map 4815081 --satellite --api-key YOUR_HERE_API_KEY
+```
+
+The generated maps will be saved as PNG files in the project root directory, with corresponding data in the `data/processed/` folder.
+
+### Step 3: Validate and Correct POI295 Violations
+
+Finally, run the validator to identify and correct POI295 violations.
+
+```bash
+# Find violations in all tiles
+python main.py validate
+
+# Find violations, generate a report, and visualize samples
+python main.py validate --report --visualize
+
+# Find violations, apply corrections, and generate a report
+python main.py validate --correct --report
+
+# Process a specific tile
+python main.py validate --tile 4815081 --correct
+```
+
+Corrected data will be saved in the `data/processed/` folder with a `corrected_` prefix.
+
+## Data Structure
+
+The project expects the following data structure:
+
+- `data/`
+  - `HERE_L11_Tiles.geojson` - Tile boundaries
+  - `POIs/` - POI data CSV files
+  - `STREETS_NAV/` - Road network GeoJSON files
+  - `STREETS_NAMING_ADDRESSING/` - Road naming GeoJSON files
+  - `processed/` - Output directory for processed data
+
+## Understanding the Results
+
+### Map Visualization
+
+The POI maps generated by the `map` command provide a visual representation of all POIs in a given tile:
+
+- **POI locations**: Shown as colored dots on the map
+- **Color coding**: Each color represents a different POI facility type
+- **Numbers**: Each POI is numbered, corresponding to the 'id' field in the output data CSV
+- **Legend**: A legend shows the mapping between colors and facility types
+
+When satellite imagery is available (with a valid HERE API key), POIs are overlaid on the satellite map. Without satellite imagery, a basic grid map is generated.
+
+### Violation Detection and Correction
+
+The POI295 validation results include:
+
+- **Violation counts**: The number of violations found in each tile
+- **Visualization samples**: When the `--visualize` flag is used, sample visualizations of violations are saved in the `data/processed/` folder
+- **Correction summary**: When the `--correct` flag is used, a summary of applied corrections is displayed
+- **Corrected files**: Modified data is saved with a `corrected_` prefix in the `data/processed/` folder
+
+The correction types include:
+1. Deleting erroneous POIs (no POI in reality)
+2. Updating POI attributes (incorrect POI location)
+3. Updating road link attributes (incorrect multiply digitized attribution)
+4. No changes (legitimate exceptions)
+
+### Reports
+
+When the `--report` flag is used, detailed reports are generated in the `data/processed/` folder:
+
+- **poi295_validation_report.xlsx**: An Excel file containing all violation details
+- **violation_sample_X.png**: Visual samples of the violations
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Missing satellite imagery**:
+   - Ensure you have a valid HERE API key
+   - Check your internet connection
+   - Verify the API key is correctly set using the `--api-key` parameter or in the `.env` file
+
+2. **Column name errors**:
+   - The system is designed to handle variations in column names (uppercase/lowercase)
+   - If you encounter errors, check that your data files have the expected column structure
+
+3. **Missing data files**:
+   - Ensure all required data files are present in the expected folder structure
+   - For testing, you can use the provided test files (`TEST_FIXED` and `VIOLATION`)
+
+### Running Test Cases
+
+To verify the system is working correctly, run the test validator:
+
+```bash
+python test_validator.py
+```
+
+This will run through the test cases and print detailed diagnostic information.
+
+## Contributing
+
+This project was created for Guadalahacks 2025. Contributions are welcome through pull requests.
+
+If you'd like to contribute to this project:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes
+4. Run the tests (`python test_validator.py`)
+5. Commit your changes (`git commit -m 'Add amazing feature'`)
+6. Push to the branch (`git push origin feature/amazing-feature`)
+7. Open a Pull Request
+
+Please ensure your code follows the existing style and includes appropriate tests.
+
+## License
+
+This project is created for educational purposes as part of the Guadalahacks 2025 student hackathon hosted by HERE Technologies.
+
+## Advanced Features
+
+### Running with Multiple Tiles
+
+To process multiple specific tiles at once:
+
+```bash
+# Process a list of specific tiles
+for tile in 4815075 4815081 4815429; do
+  python main.py validate --tile $tile --correct
+done
+```
+
+### Batch Processing with Visual Outputs
+
+To generate both corrections and visualizations for all available tiles:
+
+```bash
+# First extract all POI data
+python main.py extract --format json
+
+# Then process each tile with visualization
+for tile_path in data/POIs/POI_*.csv; do
+  tile=$(basename $tile_path .csv | cut -d'_' -f2)
+  echo "Processing tile $tile..."
+  python main.py map $tile
+  python main.py validate --tile $tile --correct --visualize
+done
+```
+
+### Analyzing Results
+
+After running the validation and correction process, you can analyze the results:
+
+```bash
+# Count the number of corrected files
+ls -1 data/processed/corrected_* | wc -l
+
+# Generate a summary of all processed tiles
+python main.py extract --format excel --summary
+```
+
+## Future Improvements
+
+Potential enhancements for future versions:
+
+1. **Machine learning integration**: Automatically classify the correction scenario based on satellite imagery and historical data
+2. **Interactive web UI**: Create a web interface for easier visualization and manual intervention
+3. **Batch processing improvements**: Add parallel processing for faster validation of large datasets
+4. **Additional validation rules**: Extend the framework to handle other validation rules beyond POI295
+
+## Acknowledgments
+
+- HERE Technologies for providing the data and problem statement
+- Guadalahacks 2025 organizers and mentors

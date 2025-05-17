@@ -23,6 +23,10 @@ poi_map_tile_*.*
 # Exceptions - allow these specific files
 !data/docs/POI_Facility_Types.csv
 !data/docs/satellite_imagery_tile_request.py
+!data/POIs/POI_TEST_FIXED.csv
+!data/POIs/POI_VIOLATION.csv
+!data/STREETS_NAV/SREETS_NAV_TEST_FIXED.geojson
+!data/STREETS_NAV/SREETS_NAV_VIOLATION.geojson
 
 # Python
 __pycache__/

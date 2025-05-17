@@ -1,0 +1,33 @@
+code,description
+100,Restaurant
+101,Fast Food
+102,Cafe/Pub
+103,Hotel/Motel
+104,Gas Station
+105,Retail/Shopping
+106,Parking
+107,Car Dealer
+108,Auto Service
+109,Bank/ATM
+110,Post Office
+111,Hospital/Medical
+112,Theater/Cinema
+113,School/University
+114,Government Office
+115,Police Station
+116,Fire Station
+117,Airport
+118,Train/Bus Station
+119,Landmark/Tourist Attraction
+120,Park/Recreation
+121,Religious Place
+122,Library
+123,Sports Complex
+124,Museum
+125,Historic Building
+126,Pharmacy
+127,Supermarket
+128,Department Store
+129,Entertainment
+130,Beach
+200,Other

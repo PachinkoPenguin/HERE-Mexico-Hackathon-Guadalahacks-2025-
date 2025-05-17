@@ -1,0 +1,9 @@
+pandas>=1.3.0
+numpy>=1.20.0
+geopandas>=0.10.0
+matplotlib>=3.4.0
+shapely>=1.8.0
+requests>=2.25.0
+pillow>=8.2.0
+openpyxl>=3.0.7
+python-dotenv>=0.19.0

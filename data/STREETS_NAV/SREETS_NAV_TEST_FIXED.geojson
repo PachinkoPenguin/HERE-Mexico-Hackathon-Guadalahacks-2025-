@@ -1,0 +1,39 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "link_id": "12345",
+        "st_name": "Main Street",
+        "st_langcd": "ENG",
+        "dir_travel": "F",
+        "multidigit": "Y"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-99.123, 19.432],
+          [-99.124, 19.433]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "link_id": "12346",
+        "st_name": "Main Street",
+        "st_langcd": "ENG",
+        "dir_travel": "T",
+        "multidigit": "Y"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-99.124, 19.434],
+          [-99.123, 19.433]
+        ]
+      }
+    }
+  ]
+}

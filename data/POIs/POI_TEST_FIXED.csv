@@ -1,0 +1,3 @@
+poi_id,link_id,poi_name,fac_type,poi_st_sd,percfrref,tile_id
+1,12345,Test POI 1,100,R,50,TEST_FIXED
+2,12346,Test POI 2,101,L,40,TEST_FIXED

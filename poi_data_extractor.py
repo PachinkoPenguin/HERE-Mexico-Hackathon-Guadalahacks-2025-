@@ -56,8 +56,13 @@ def extract_all_poi_data(output_format='json'):
             df['TILE_ID'] = tile_id
             
             # Add facility type description if available
-            if facility_types:
+            if facility_types and 'FAC_TYPE' in df.columns:
                 df['FAC_TYPE_DESC'] = df['FAC_TYPE'].astype(str).map(facility_types).fillna('Unknown')
+            elif 'FAC_TYPE' not in df.columns:
+                print(f"Warning: FAC_TYPE column not found in {poi_file.name}, skipping description mapping")
+                # Add an empty FAC_TYPE column to avoid issues later
+                df['FAC_TYPE'] = 0
+                df['FAC_TYPE_DESC'] = 'Unknown'
             
             # Convert DataFrame to list of dictionaries
             file_pois = df.to_dict('records')
@@ -136,8 +141,13 @@ def extract_tile_poi_data(tile_id, output_format='json'):
         df['TILE_ID'] = tile_id
         
         # Add facility type description if available
-        if facility_types:
+        if facility_types and 'FAC_TYPE' in df.columns:
             df['FAC_TYPE_DESC'] = df['FAC_TYPE'].astype(str).map(facility_types).fillna('Unknown')
+        elif 'FAC_TYPE' not in df.columns:
+            print(f"Warning: FAC_TYPE column not found in {poi_file.name}, skipping description mapping")
+            # Add an empty FAC_TYPE column to avoid issues later
+            df['FAC_TYPE'] = 0
+            df['FAC_TYPE_DESC'] = 'Unknown'
         
         # Convert DataFrame to list of dictionaries
         pois = df.to_dict('records')
@@ -169,6 +179,8 @@ def extract_tile_poi_data(tile_id, output_format='json'):
     except Exception as e:
         print(f"Error processing {poi_file.name}: {e}")
         return None
+
+def generate_poi_summary(input_file=None):
     """
     Generate a summary of the POI data, grouping by facility type
     and providing counts and other insights.
