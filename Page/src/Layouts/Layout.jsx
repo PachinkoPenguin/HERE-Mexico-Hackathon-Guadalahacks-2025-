@@ -3,35 +3,29 @@ import { Link } from 'react-router-dom';
 
 const Layout = ({ children }) => {
   return (
-    <div className="w-full min-h-screen bg-gray-50 flex flex-col items-center justify-start relative">      <nav className="w-full bg-gradient-to-r from-blue-900 via-blue-700 to-blue-600 text-white p-6 shadow-xl relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1IiBoZWlnaHQ9IjUiPgo8cmVjdCB3aWR0aD0iNSIgaGVpZ2h0PSI1IiBmaWxsPSIjMDAwIiBvcGFjaXR5PSIwLjA1Ij48L3JlY3Q+Cjwvc3ZnPg==')] opacity-20"></div>
-        <div className="container mx-auto flex flex-col md:flex-row justify-between items-center relative z-10">
-          <div className="flex items-center mb-4 md:mb-0">
-            <div className="bg-white p-2 rounded-full shadow-md mr-3 transform transition-transform hover:scale-110">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#2563eb" className="w-8 h-8">
-                <path fillRule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="text-2xl font-extrabold tracking-tight">HERE Mexico Hackathon</div>
-          </div>          <ul className="flex space-x-6 items-center">
-            <li>
-              <Link to="/" className="hover:text-blue-200 transition-all duration-200 font-medium relative group">
+    <div className="w-full min-h-screen bg-gray-50 flex flex-col items-center justify-start relative">
+      <nav className="w-full bg-gradient-to-r from-blue-900 via-blue-700 to-blue-600 text-white p-6 shadow-xl relative overflow-hidden">
+        <div className="container mx-auto flex flex-col md:flex-row justify-between items-center relative z-10 w-[100%] h-[20vh]">
+          <div className="flex items-center mb-4 md:mb-0 h-[40%] justify-center">
+            <h1 className="text-6xl font-bold pt-[10%]">HERE Mexico Hackathon</h1>
+          </div>
+          <ul className="flex justify-between items-center w-[70%] h-[60%]">
+            <li className='list-none w-full h-full flex items-center justify-center'>
+              <Link to="/" className="hover:text-blue-200 hover:scale-110 hover:bg-gray-300 rounded-full border-2 bg-blue-800 w-[60%] h-[60%] flex items-center justify-center transition-all duration-300 font-medium relative group no-underline">
                 Home
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span>
               </Link>
             </li>
-            <li>
-              <Link to="/tools" className="hover:text-blue-200 transition-all duration-200 font-medium relative group">
+            <li className='list-none w-full h-full flex items-center justify-center'>
+              <Link to="/tools" className="hover:text-blue-200 hover:scale-110 hover:bg-gray-300 rounded-full border-2 bg-blue-800 w-[60%] h-[60%] flex items-center justify-center transition-all duration-300 font-medium relative group no-underline">
                 Tools
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span>
               </Link>
             </li>
-            <li>
+            <li className='list-none w-full h-full flex items-center justify-center'>
               <a 
                 href="https://developer.here.com" 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="bg-white text-blue-700 px-5 py-2.5 rounded-lg font-bold hover:bg-blue-50 hover:text-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                className="hover:text-blue-200 hover:scale-110 hover:bg-gray-300 rounded-full border-2 bg-blue-800 w-[60%] h-[60%] flex items-center justify-center transition-all duration-300 font-medium relative group no-underline"
               >
                 HERE Developer
               </a>
