@@ -24,7 +24,7 @@ def extraer_puntos(data):
 def main():
     long = 0
     lat = 0
-    with open('SREETS_NAMING_ADDRESSING_4815096.geojson', 'r') as f:
+    with open(r'./STREETS_NAMING_ADDRESSING/SREETS_NAMING_ADDRESSING_4815096.geojson', 'r') as f:
         data = json.load(f)
         
     for data_ind in data['features']:
@@ -39,6 +39,7 @@ def main():
         long /= num
         lat /= num
         print(data_ind['properties']['ST_NAME'])
+        print(data_ind['properties'])
         print(f"lat: {lat}, long: {long}")
         print(f'CDMX: {en_cdmx(lat, long)}')
         print(f'TOLUCA: {en_toluca(lat, long)}\n\n')
