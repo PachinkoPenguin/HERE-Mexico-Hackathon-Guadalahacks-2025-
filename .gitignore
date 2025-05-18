@@ -1,5 +1,6 @@
 .env
 POIs
+pip3
 STREETS_NAV
 STREETS_NAMING_ADDRESSING
 HERE_L11_Tiles.geojson
