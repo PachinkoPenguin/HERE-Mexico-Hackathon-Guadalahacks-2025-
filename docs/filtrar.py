@@ -1,4 +1,4 @@
-# unificar_pois_con_features.py
+# unificar_pois_con_features_filtrado.py
 import os
 import json
 import glob
@@ -9,11 +9,12 @@ import time
 def unificar_pois_con_features():
     """
     Crea múltiples JSONs con POIs que tienen líneas de streets_naming y streets_nav.
+    Filtra únicamente los que tienen MULTIDIGIT="Yes" (a menos que tengan excepciones).
     Incluye la información completa de los features para cada POI.
     """
     # Mostrar mensaje de inicio
     print("=" * 80)
-    print("UNIFICACIÓN DE POIS CON FEATURES DE CALLES")
+    print("UNIFICACIÓN DE POIS CON FEATURES DE CALLES (CON FILTRO MULTIDIGIT)")
     print("=" * 80)
     
     # Definir rutas de directorios
@@ -22,7 +23,7 @@ def unificar_pois_con_features():
     directorio_streets_naming = input("Directorio de streets_naming_addressing [STREETS_NAMING_ADDRESSING]: ").strip() or "STREETS_NAMING_ADDRESSING"
     
     # Directorio de salida
-    directorio_salida = input("Directorio de salida [pois_features]: ").strip() or "pois_features"
+    directorio_salida = input("Directorio de salida [pois_features_filtrados]: ").strip() or "pois_features_filtrados"
     os.makedirs(directorio_salida, exist_ok=True)
     
     # Tamaño de lote (POIs por archivo)
@@ -37,13 +38,14 @@ def unificar_pois_con_features():
     # Paso 1: Cargar todos los features de streets_nav y streets_naming
     inicio = time.time()
     print("\nCargando features de streets_nav y streets_naming...")
-    street_features = cargar_features(directorio_streets_nav, directorio_streets_naming)
+    street_features, link_ids_filtrados = cargar_features_con_filtro(directorio_streets_nav, directorio_streets_naming)
     print(f"Se encontraron features para {len(street_features['nav']):,} link_ids en streets_nav")
     print(f"Se encontraron features para {len(street_features['naming']):,} link_ids en streets_naming")
+    print(f"Link_ids que cumplen el criterio MULTIDIGIT: {len(link_ids_filtrados):,}")
     
-    # Conjunto de link_ids que tienen ambos types de features
-    link_ids_completos = set(street_features['nav'].keys()) & set(street_features['naming'].keys())
-    print(f"Link_ids con ambos tipos de features: {len(link_ids_completos):,}")
+    # Conjunto de link_ids que tienen ambos types de features y cumplen con el filtro
+    link_ids_completos = set(link_ids_filtrados) & set(street_features['naming'].keys())
+    print(f"Link_ids con ambos tipos de features y que cumplen el filtro: {len(link_ids_completos):,}")
     
     # Paso 2: Recorrer todos los POIs y crear entradas completas
     print("\nProcesando archivos de POIs...")
@@ -59,20 +61,24 @@ def unificar_pois_con_features():
     print(f"\nProceso completado en {(fin - inicio)/60:.2f} minutos.")
     print(f"Resultados guardados en: {directorio_salida}")
     print(f"POIs procesados: {resultado_info['total_pois']:,}")
-    print(f"POIs con ambos features: {resultado_info['pois_completos']:,} ({resultado_info['pois_completos']/resultado_info['total_pois']*100:.2f}% si hay POIs)")
+    print(f"POIs que cumplen el filtro MULTIDIGIT y con ambos features: {resultado_info['pois_completos']:,} ({resultado_info['pois_completos']/resultado_info['total_pois']*100:.2f}% si hay POIs)")
     print(f"Archivos JSON generados: {len(resultado_info['archivos']):,}")
 
-def cargar_features(directorio_nav, directorio_naming):
+def cargar_features_con_filtro(directorio_nav, directorio_naming):
     """
     Carga todos los features de los archivos GeoJSON de streets_nav y streets_naming.
+    Filtra los features de streets_nav según criterio MULTIDIGIT.
     
     Returns:
-        dict: Diccionario con features de nav y naming por link_id
+        tuple: (Diccionario con features de nav y naming por link_id, Conjunto de link_ids filtrados)
     """
     street_features = {
         'nav': {},
         'naming': {}
     }
+    
+    # Conjunto para almacenar los link_ids que cumplen el criterio de filtrado
+    link_ids_filtrados = set()
     
     # Procesar archivos de streets_nav
     archivos_nav = glob.glob(os.path.join(directorio_nav, "*.geojson"))
@@ -87,6 +93,19 @@ def cargar_features(directorio_nav, directorio_naming):
                         if "properties" in feature and "link_id" in feature["properties"]:
                             link_id = str(feature["properties"]["link_id"])
                             street_features['nav'][link_id] = feature
+                            
+                            # Aplicar filtro MULTIDIGIT
+                            properties = feature["properties"]
+                            multidigit = properties.get("MULTIDIGIT", "").upper() == "Y"
+                            ramp = properties.get("RAMP", "").upper() == "Y"
+                            manoeuvre = properties.get("MANOEUVRE", "").upper() == "Y"
+                            dir_travel = properties.get("DIR_TRAVEL", "").upper() == "B"
+                            
+                            # Un link_id cumple si:
+                            # 1. Tiene MULTIDIGIT="Yes"
+                            # 2. O si RAMP="Y", MANOEUVRE="Y", o DIR_TRAVEL="B" (excepciones)
+                            if multidigit and not(ramp or manoeuvre or dir_travel):
+                                link_ids_filtrados.add(link_id)
         except Exception as e:
             print(f"Error al procesar {archivo}: {str(e)}")
     
@@ -103,6 +122,16 @@ def cargar_features(directorio_nav, directorio_naming):
                             if "properties" in feature and "link_id" in feature["properties"]:
                                 link_id = str(feature["properties"]["link_id"])
                                 street_features['nav'][link_id] = feature
+                                
+                                # Aplicar filtro MULTIDIGIT
+                                properties = feature["properties"]
+                                multidigit = properties.get("MULTIDIGIT", "").lower() == "yes"
+                                ramp = properties.get("RAMP", "").upper() == "Y"
+                                manoeuvre = properties.get("MANOEUVRE", "").upper() == "Y"
+                                dir_travel = properties.get("DIR_TRAVEL", "").upper() == "B"
+                                
+                                if multidigit or ramp or manoeuvre or dir_travel:
+                                    link_ids_filtrados.add(link_id)
             except Exception as e:
                 print(f"Error al procesar {archivo}: {str(e)}")
     
@@ -125,7 +154,11 @@ def cargar_features(directorio_nav, directorio_naming):
         except Exception as e:
             print(f"Error al procesar {archivo}: {str(e)}")
     
-    return street_features
+    print(f"Total de features en streets_nav: {len(street_features['nav']):,}")
+    print(f"Total de features en streets_naming: {len(street_features['naming']):,}")
+    print(f"Link_ids que cumplen criterio MULTIDIGIT o excepciones: {len(link_ids_filtrados):,}")
+    
+    return street_features, link_ids_filtrados
 
 def procesar_pois_en_lotes(directorio_pois, street_features, link_ids_completos, directorio_salida, tamano_lote):
     """
@@ -135,7 +168,7 @@ def procesar_pois_en_lotes(directorio_pois, street_features, link_ids_completos,
     Args:
         directorio_pois: Directorio con archivos CSV de POIs
         street_features: Diccionario con los features de calles
-        link_ids_completos: Conjunto de link_ids que tienen ambos tipos de features
+        link_ids_completos: Conjunto de link_ids que tienen ambos tipos de features y cumplen el filtro
         directorio_salida: Directorio donde guardar los archivos JSON
         tamano_lote: Número de POIs por archivo JSON
         
@@ -149,12 +182,14 @@ def procesar_pois_en_lotes(directorio_pois, street_features, link_ids_completos,
     pois_faltantes_nav = 0
     pois_faltantes_naming = 0
     pois_completos = 0
+    pois_no_cumplen_filtro = 0
     
     resultado_info = {
         'total_pois': 0,
         'pois_completos': 0,
         'pois_faltantes_nav': 0,
         'pois_faltantes_naming': 0,
+        'pois_no_cumplen_filtro': 0,
         'archivos': []
     }
     
@@ -196,7 +231,7 @@ def procesar_pois_en_lotes(directorio_pois, street_features, link_ids_completos,
                     # POI ID para referencias
                     poi_id = campos[0].strip() if len(campos) > 0 else f"unknown_{total_pois}"
                     
-                    # Verificar si el link_id tiene los features completos
+                    # Verificar si el link_id tiene los features completos y cumple el filtro
                     if link_id in link_ids_completos:
                         # Crear un diccionario completo para este POI
                         poi_entry = {
@@ -252,10 +287,16 @@ def procesar_pois_en_lotes(directorio_pois, street_features, link_ids_completos,
                             lote_actual = []
                             numero_lote += 1
                     else:
-                        # Verificar qué features faltan
-                        if link_id in street_features['nav']:
+                        # Verificar qué features faltan o si no cumple el filtro
+                        nav_existe = link_id in street_features['nav']
+                        naming_existe = link_id in street_features['naming']
+                        
+                        if nav_existe and naming_existe:
+                            # Tiene ambos features pero no cumple el filtro MULTIDIGIT
+                            pois_no_cumplen_filtro += 1
+                        elif nav_existe:
                             pois_faltantes_naming += 1
-                        elif link_id in street_features['naming']:
+                        elif naming_existe:
                             pois_faltantes_nav += 1
         
         except Exception as e:
@@ -287,11 +328,13 @@ def procesar_pois_en_lotes(directorio_pois, street_features, link_ids_completos,
     resultado_info['pois_completos'] = pois_completos
     resultado_info['pois_faltantes_nav'] = pois_faltantes_nav
     resultado_info['pois_faltantes_naming'] = pois_faltantes_naming
+    resultado_info['pois_no_cumplen_filtro'] = pois_no_cumplen_filtro
     
     print(f"\nTotal POIs procesados: {total_pois:,}")
-    print(f"POIs con ambos features: {pois_completos:,} ({pois_completos/total_pois*100:.2f}% si total_pois > 0)")
+    print(f"POIs que cumplen el filtro MULTIDIGIT y tienen ambos features: {pois_completos:,} ({pois_completos/total_pois*100:.2f}% si total_pois > 0)")
     print(f"POIs con link_id en streets_nav pero no en streets_naming: {pois_faltantes_naming:,}")
     print(f"POIs con link_id en streets_naming pero no en streets_nav: {pois_faltantes_nav:,}")
+    print(f"POIs con ambos features pero que no cumplen el filtro MULTIDIGIT: {pois_no_cumplen_filtro:,}")
     
     return lote_actual, resultado_info
 
@@ -307,7 +350,8 @@ def guardar_indice_general(resultado_info, directorio_salida):
     indice_general = {
         "fecha_generacion": time.strftime("%Y-%m-%d %H:%M:%S"),
         "total_pois_procesados": resultado_info['total_pois'],
-        "pois_con_features_completos": resultado_info['pois_completos'],
+        "pois_con_features_completos_y_filtro": resultado_info['pois_completos'],
+        "pois_no_cumplen_filtro": resultado_info['pois_no_cumplen_filtro'],
         "total_archivos": len(resultado_info['archivos']),
         "archivos": resultado_info['archivos']
     }
