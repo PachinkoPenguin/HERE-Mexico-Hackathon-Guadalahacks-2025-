@@ -54,11 +54,13 @@ def get_satellite_tile(lat,lon,zoom,tile_format,api_key):
     x,y =lat_lon_to_tile(lat, lon, zoom)
 
 
-    # Construct the URL for the map tile API
-    url = f'https://maps.hereapi.com/v3/base/mc/{zoom}/{x}/{y}/{tile_format}&style=satellite.day&size={tile_size}?apiKey={api_key}'
+    # Construct the URL for the map tile API - FIXED correct parameter order
+    # Parameters must come after ? and additional parameters must be separated by &
+    url = f'https://maps.hereapi.com/v3/base/mc/{zoom}/{x}/{y}/{tile_format}?style=satellite.day&size={tile_size}&apiKey={api_key}'
 
     # Make the request
     response = requests.get(url)
+    print(f"Requesting URL: {url.replace(api_key, 'API_KEY_HIDDEN')}")
 
     # Check if the request was successful
     if response.status_code == 200:

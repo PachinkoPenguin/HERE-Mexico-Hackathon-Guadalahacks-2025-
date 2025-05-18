@@ -1,0 +1,22 @@
+diff --git a/poi_mapper.py b/poi_mapper.py
+index xxxxxxx..yyyyyyy 100644
+--- a/poi_mapper.py
++++ b/poi_mapper.py
+@@ -179,7 +179,15 @@
+         facility_types = sorted(set(poi.get('type') for poi in pois if 'type' in poi))
+     
+     # Create a mapping of facility type to color
+-    cmap = plt.cm.get_cmap('tab20', len(facility_types))
++    try:
++        # For matplotlib 3.7+
++        import matplotlib as mpl
++        if hasattr(mpl, 'colormaps'):
++            cmap = mpl.colormaps['tab20']
++        else:
++            # Fallback for older matplotlib versions
++            cmap = plt.get_cmap('tab20')
++    except Exception:
++        cmap = plt.cm.get_cmap('tab20', len(facility_types))
+     color_map = {}
+     
+     for i, facility_type in enumerate(facility_types):

@@ -27,6 +27,8 @@ def main():
     map_parser.add_argument('--satellite', action='store_true', help='Include satellite imagery')
     map_parser.add_argument('--api-key', type=str, help='HERE API key for satellite imagery')
     map_parser.add_argument('--zoom', type=int, default=15, help='Zoom level for satellite imagery')
+    map_parser.add_argument('--max-pois', type=int, default=1000, help='Maximum number of POIs to display')
+    map_parser.add_argument('--cluster-distance', type=int, default=20, help='Distance threshold for clustering')
     
     # Validate command
     validate_parser = subparsers.add_parser('validate', help='Validate POI295 violations')
@@ -59,7 +61,7 @@ def main():
             bounds = tile_info['bounds']
             
             # Generate the map
-            api_key_env = os.environ.get('HERE_API_KEY', '')
+            api_key_env = os.environ.get('API_KEY', '')
             api_key_to_use = args.api_key if args.api_key else api_key_env
             
             if not api_key_to_use and args.satellite:
@@ -68,7 +70,7 @@ def main():
                     if os.path.exists('.env'):
                         with open('.env', 'r') as env_file:
                             for line in env_file:
-                                if line.startswith('HERE_API_KEY='):
+                                if line.startswith('API_KEY='):
                                     api_key_to_use = line.split('=')[1].strip()
                                     break
                 except Exception as e:
@@ -76,12 +78,20 @@ def main():
                 
                 if not api_key_to_use:
                     print("Warning: No HERE API key provided. Satellite imagery won't be available.")
-                    print("Use --api-key option or set HERE_API_KEY environment variable.")
+                    print("Use --api-key option or set API_KEY environment variable in a .env file.")
+                    print("Format in .env file should be: API_KEY=your_api_key_here")
+                    if args.satellite:
+                        print("Continuing with standard map visualization instead of satellite.")
+            
+            # Only pass the API key if satellite imagery is requested
+            api_key_param = api_key_to_use if args.satellite else None
             
             fig, export_data = plot_pois_on_map(
                 args.tile,
-                api_key=api_key_to_use,
-                zoom_level=args.zoom
+                api_key=api_key_param,
+                zoom_level=args.zoom,
+                max_pois=args.max_pois,
+                cluster_distance=args.cluster_distance
             )
             
             # Display the map

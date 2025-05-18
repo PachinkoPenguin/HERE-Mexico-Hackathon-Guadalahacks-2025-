@@ -15,16 +15,15 @@ def lat_lon_to_tile(lat, lon, zoom):
     :param zoom: Zoom level (0-19)
     :return: Tuple (x, y) representing the tile indices
     """
-    # Convert latitude and longitude to radians
-    lat_rad = math.radians(lat)
-    lon_rad = math.radians(lon)
+    # Ensure latitude is within bounds to prevent math domain errors
+    lat = max(min(lat, 85.05112878), -85.05112878)
     
     # Calculate n (number of tiles at the given zoom level)
     n = 2.0 ** zoom
     
-    # Calculate x and y tile indices
-    x = int((lon_rad - (-math.pi)) / (2 * math.pi) * n)
-    y = int((1 - math.log(math.tan(lat_rad) + 1 / math.cos(lat_rad)) / math.pi) / 2 * n)
+    # Calculate x and y tile indices (WebMercator formula)
+    x = int((lon + 180.0) / 360.0 * n)
+    y = int((1.0 - math.log(math.tan(math.radians(lat)) + 1 / math.cos(math.radians(lat))) / math.pi) / 2.0 * n)
     
     return (x, y)
 
@@ -32,8 +31,8 @@ def tile_coords_to_lat_lon(x, y, zoom):
     n = 2.0 ** zoom
     lon_deg = x / n * 360.0 - 180.0
     lat_rad = math.atan(math.sinh(math.pi * (1-2 * y/n)))
-    lat_def = math.degrees(lat_rad)
-    return (lat_def, lon_deg)
+    lat_deg = math.degrees(lat_rad)
+    return (lat_deg, lon_deg)
 
 def get_tile_bounds(x, y, zoom):
     lat1, lon1 = tile_coords_to_lat_lon(x,y,zoom)
@@ -49,13 +48,39 @@ def create_wkt_polygon(bounds):
 
 
 
-def get_satellite_tile(lat,lon,zoom,tile_format,api_key):
+def get_satellite_tile(lat, lon, zoom, tile_format, api_key):
+    """
+    Get a satellite imagery tile for the given coordinates using HERE Maps API
+    
+    Parameters:
+    -----------
+    lat : float
+        Latitude in degrees
+    lon : float 
+        Longitude in degrees
+    zoom : int
+        Zoom level (0-19)
+    tile_format : str
+        Format of the tile (png, jpeg)
+    api_key : str
+        HERE Maps API key
+    
+    Returns:
+    --------
+    str
+        WKT polygon representing the bounds of the tile
+    """
+    # Convert lat/lon to tile coordinates
+    x, y = lat_lon_to_tile(lat, lon, zoom)
+    
+    # Set tile size (512 is recommended by HERE API)
+    tile_size = 512
 
-    x,y =lat_lon_to_tile(lat, lon, zoom)
-
-
-    # Construct the URL for the map tile API
-    url = f'https://maps.hereapi.com/v3/base/mc/{zoom}/{x}/{y}/{tile_format}&style=satellite.day&size={tile_size}?apiKey={api_key}'
+    # Construct the URL for the map tile API - IMPORTANT: parameters must come after ? and be separated by &
+    url = f'https://maps.hereapi.com/v3/base/mc/{zoom}/{x}/{y}/{tile_format}?style=satellite.day&size={tile_size}&apiKey={api_key}'
+    
+    # Print the URL for debugging (with API key redacted)
+    print(f"Requesting URL: {url.replace(api_key, 'API_KEY_HIDDEN')}")
 
     # Make the request
     response = requests.get(url)
@@ -81,7 +106,7 @@ api_key = API_KEY
 latitude = 51.94347 
 longitude = 8.51692 
 zoom_level = 20  # Zoom level
-tile_size = 512  # Tile size in pixels
+tile_size = 512  # Tile size in pixels - also used in get_satellite_tile function
 tile_format = 'png'  # Tile format
 
 # Execute request and save tile
